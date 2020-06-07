@@ -334,6 +334,8 @@
     "block.tconstruct.seared_gauge.tooltip": "Heart of the Smeltery.\nRetains liquid when broken.",
     "block.tconstruct.seared_window": "Seared Window",
     "block.tconstruct.seared_window.tooltip": "Heart of the Smeltery.\nRetains liquid when broken.",
+    "block.tconstruct.faucet": "Seared Faucet",
+    "block.tconstruct.faucet.tooltip": "Drains liquids from Smelteries and Tanks",
 
     "_comment": "Tinkers World",
 

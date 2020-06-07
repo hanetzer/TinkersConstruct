@@ -20,5 +20,6 @@ public class SmelteryClientEvents extends ClientEventBase {
     for (SearedTankBlock.TankType tankType : SearedTankBlock.TankType.values()) {
       RenderTypeLookup.setRenderLayer(TinkerSmeltery.searedTank.get(tankType), RenderType.getCutout());
     }
+    RenderTypeLookup.setRenderLayer(TinkerSmeltery.searedFaucet.get(), RenderType.getCutout());
   }
 }

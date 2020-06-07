@@ -633,6 +633,22 @@ public class TConstructRecipeProvider extends RecipeProvider implements IConditi
       .patternLine(" # ")
       .addCriterion("has_item", this.hasItem(TinkerSmeltery.searedBrick))
       .build(consumer, "tconstruct:smeltery/faucet");
+
+    ShapedRecipeBuilder.shapedRecipe(TinkerSmeltery.castingBasin.get())
+      .key('#', TinkerSmeltery.searedBrick)
+      .patternLine("# #")
+      .patternLine("# #")
+      .patternLine("###")
+      .addCriterion("has_item", this.hasItem(TinkerSmeltery.searedBrick))
+      .build(consumer, "tconstruct:smeltery/casting_basin");
+
+    ShapedRecipeBuilder.shapedRecipe(TinkerSmeltery.castingTable.get())
+      .key('#', TinkerSmeltery.searedBrick)
+      .patternLine("###")
+      .patternLine("# #")
+      .patternLine("# #")
+      .addCriterion("has_item", this.hasItem(TinkerSmeltery.searedBrick))
+      .build(consumer, "tconstruct:smeltery/casting_table");
   }
 
   private void addSlimeRecipes(Consumer<IFinishedRecipe> consumer) {

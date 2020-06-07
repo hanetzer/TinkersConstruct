@@ -21,5 +21,7 @@ public class SmelteryClientEvents extends ClientEventBase {
       RenderTypeLookup.setRenderLayer(TinkerSmeltery.searedTank.get(tankType), RenderType.getCutout());
     }
     RenderTypeLookup.setRenderLayer(TinkerSmeltery.searedFaucet.get(), RenderType.getCutout());
+    RenderTypeLookup.setRenderLayer(TinkerSmeltery.castingBasin.get(), RenderType.getCutout());
+    RenderTypeLookup.setRenderLayer(TinkerSmeltery.castingTable.get(), RenderType.getCutout());
   }
 }

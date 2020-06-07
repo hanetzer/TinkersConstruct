@@ -28,6 +28,7 @@ import slimeknights.tconstruct.tables.TinkerTables;
 import slimeknights.tconstruct.tools.TinkerMaterials;
 import slimeknights.tconstruct.tools.TinkerModifiers;
 import slimeknights.tconstruct.world.TinkerWorld;
+import slimeknights.tconstruct.smeltery.block.SearedTankBlock;
 import slimeknights.tconstruct.world.block.SlimeDirtBlock;
 import slimeknights.tconstruct.world.block.SlimeGrassBlock;
 
@@ -177,6 +178,15 @@ public class TConstructBlockLootTables extends BlockLootTables {
     this.registerBuildingLootTables(TinkerSmeltery.searedRoad);
     this.registerBuildingLootTables(TinkerSmeltery.searedTile);
     this.registerDropSelfLootTable(TinkerSmeltery.searedGlass.get());
+
+    for (SearedTankBlock.TankType type : SearedTankBlock.TankType.values()) {
+      for (Block block : new Block[] {TinkerSmeltery.searedTank.get(type)}) {
+        this.registerLootTable(block, droppingWithFunctions(block, (builder) -> {
+          return builder.acceptFunction(CopyName.builder(CopyName.Source.BLOCK_ENTITY))
+            .acceptFunction(CopyNbt.builder(CopyNbt.Source.BLOCK_ENTITY).replaceOperation("tank", "tank"));
+        }));
+      }
+    }
   }
 
   /*

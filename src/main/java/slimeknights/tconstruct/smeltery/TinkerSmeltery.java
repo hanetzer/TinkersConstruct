@@ -43,11 +43,11 @@ public final class TinkerSmeltery extends TinkerModule {
    * Blocks
    */
   public static final BlockItemObject<Block> grout = BLOCKS.register("grout", () -> new Block(GENERIC_SAND_BLOCK), TOOLTIP_BLOCK_ITEM);
-  public static final BlockItemObject<SearedGlassBlock> searedGlass = BLOCKS.register("seared_glass", () -> new SearedGlassBlock(builder(Material.ROCK, NO_TOOL, SoundType.METAL).hardnessAndResistance(3.0F, 20.0F).notSolid()), TOOLTIP_BLOCK_ITEM);
+  public static final BlockItemObject<SearedGlassBlock> searedGlass = BLOCKS.register("seared_glass", () -> new SearedGlassBlock(builder(Material.ROCK, NO_TOOL, SoundType.METAL).hardnessAndResistance(3.0F, 9.0F).notSolid()), TOOLTIP_BLOCK_ITEM);
 
   // seared
   // TODO: registerBuilding does not handle custom blocks
-  private static final Block.Properties SMELTERY = builder(Material.ROCK, NO_TOOL, SoundType.METAL).hardnessAndResistance(3.0F, 20.0F);
+  private static final Block.Properties SMELTERY = builder(Material.ROCK, NO_TOOL, SoundType.METAL).hardnessAndResistance(3.0F, 9.0F);
   public static final BuildingBlockObject searedStone = BLOCKS.registerBuilding("seared_stone", SMELTERY, TOOLTIP_BLOCK_ITEM);
   public static final BuildingBlockObject searedCobble = BLOCKS.registerBuilding("seared_cobble", SMELTERY, TOOLTIP_BLOCK_ITEM);
   public static final BuildingBlockObject searedPaver = BLOCKS.registerBuilding("seared_paver", SMELTERY, TOOLTIP_BLOCK_ITEM);

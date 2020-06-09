@@ -34,7 +34,7 @@ public class CastingBlock extends InventoryBlock implements IFaucetDepth {
     }
     TileEntity te = world.getTileEntity(pos);
     if (te instanceof CastingTileEntity) {
-      //((CastingTile) te).interact(player);
+      ((CastingTileEntity) te).interact(player);
       return ActionResultType.SUCCESS;
     }
     return super.onBlockActivated(state, world, pos, player, hand, rayTraceResult);

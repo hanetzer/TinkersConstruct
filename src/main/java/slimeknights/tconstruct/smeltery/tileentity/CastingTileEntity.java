@@ -1,14 +1,20 @@
 package slimeknights.tconstruct.smeltery.tileentity;
 
+import com.google.common.collect.Lists;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.fluid.Fluid;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.Direction;
+import net.minecraft.util.text.TextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidStack;
@@ -16,18 +22,27 @@ import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.wrapper.SidedInvWrapper;
+import slimeknights.mantle.tileentity.InventoryTileEntity;
 import slimeknights.tconstruct.library.fluid.FluidTankAnimated;
+import slimeknights.tconstruct.library.smeltery.CastingFluidHandler;
+import slimeknights.tconstruct.smeltery.TinkerSmeltery;
+import slimeknights.tconstruct.smeltery.recipe.CastingRecipe;
 import slimeknights.tconstruct.tables.tileentity.TableTileEntity;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.List;
 
-public class CastingTileEntity extends TableTileEntity implements ITickableTileEntity, ISidedInventory {
+public class CastingTileEntity extends InventoryTileEntity implements ITickableTileEntity, ISidedInventory {
+  private int INPUT = 0;
+  private int OUTPUT = 1;
   public FluidTankAnimated tank;
-  public LazyOptional<IFluidHandler> holder = LazyOptional.of(() -> tank);
+  public LazyOptional<CastingFluidHandler> holder = LazyOptional.of(() -> new CastingFluidHandler(this, tank));
   protected int timer;
+  private List<CastingRecipe> recipes = Lists.newArrayList();
+  protected CastingRecipe recipe;
   public CastingTileEntity(TileEntityType<?> tileEntityTypeIn) {
-    super(tileEntityTypeIn, "casting", 2, 1);
+    super(tileEntityTypeIn, new TranslationTextComponent("casting"), 2, 1);
     this.tank = new FluidTankAnimated(0, this);
     this.itemHandler = new SidedInvWrapper(this, Direction.DOWN);
   }
@@ -42,31 +57,36 @@ public class CastingTileEntity extends TableTileEntity implements ITickableTileE
   public void interact(PlayerEntity player) {
     // can't interact if liquid inside
     if (tank.getFluidAmount() > 0) {
+      System.out.println("can't interact if liquid inside");
       return;
     }
 
     // completely empty -> insert current item into input
     if (!isStackInSlot(0) && !isStackInSlot(1)) {
+      System.out.println("completely empty -> insert current item into input");
       ItemStack stack = player.inventory.decrStackSize(player.inventory.currentItem, stackSizeLimit);
-      setInventorySlotContents(0, stack);
+      setInventorySlotContents(INPUT, stack);
     }
     // take item out
     else {
+      System.out.println("take item out");
       // take out stack 1 if something is there, 0 otherwise
-      int slot = isStackInSlot(1) ? 1 : 0;
+      int slot = isStackInSlot(OUTPUT) ? OUTPUT : INPUT;
 
       // Additional info: Only 1 item can be put into the casting block usually, however recipes
       // can have ItemStacks with stacksize > 1 as output
       // we therefore spill the whole contents on extraction.
       ItemStack stack = getStackInSlot(slot);
-      if (slot == 1) {
+      if (slot == OUTPUT) {
         // fire player smelt event?
+        System.out.println("fire player smelt event?");
       }
       ItemHandlerHelper.giveItemToPlayer(player, stack);
       setInventorySlotContents(slot, ItemStack.EMPTY);
 
       // send a block update for the comparator, needs to be done after the stack is removed
-      if (slot == 1) {
+      if (slot == OUTPUT) {
+        System.out.println("send a block update");
         this.getWorld().notifyNeighborsOfStateChange(this.pos, this.getBlockState().getBlock());
       }
     }
@@ -75,12 +95,12 @@ public class CastingTileEntity extends TableTileEntity implements ITickableTileE
 
   @Override
   public int[] getSlotsForFace(Direction side) {
-    return new int[]{0, 1};
+    return new int[]{INPUT, OUTPUT};
   }
 
   @Override
   public boolean canInsertItem(int index, ItemStack itemStackIn, @Nullable Direction direction) {
-    return index == 0 && !isStackInSlot(1);
+    return index == INPUT && !isStackInSlot(OUTPUT);
   }
 
   @Override
@@ -90,54 +110,59 @@ public class CastingTileEntity extends TableTileEntity implements ITickableTileE
 
   @Override
   public void tick() {
+    // no recipe
+    if (recipe == null) {
+      return;
+    }
+    // fully filled
     if (tank.getFluidAmount() == tank.getCapacity()) {
       timer++;
+      System.out.println(String.format("timer=%d", timer));
       if (!getWorld().isRemote) {
-        if (timer >= 100) { // recipe.getTime()
+        if (timer >= recipe.getCoolingTime()) { // recipe.getTime()
+          setInventorySlotContents(OUTPUT, recipe.getRecipeOutput());
 
+          reset();
         }
       }
     }
   }
 
-  @Override
-  public int getSizeInventory() {
+  protected CastingRecipe findRecipe(Fluid fluid) {
+    if (recipes.isEmpty()) {
+      recipes = world.getRecipeManager().getRecipes(TinkerSmeltery.castingRecipeType, this, world);
+      System.out.println(recipes);
+    }
+    for (CastingRecipe candidate : recipes) {
+      System.out.println(candidate.toString());
+      if (candidate.matches(fluid, this, world)) {
+        recipe = candidate;
+        System.out.println(recipe.toString());
+      }
+    }
+//    CastingRecipe recipe = getWorld().getRecipeManager().getRecipe(TinkerSmeltery.castingRecipeType, this, this.world).orElse(null);
+    return recipe;
+  }
+
+  public int initNewCasting(Fluid fluid, IFluidHandler.FluidAction action) {
+    System.out.println(String.format("initNewCasting(%s, %s)", fluid.getRegistryName(), action.toString()));
+    CastingRecipe recipe = findRecipe(fluid);
+    if (recipe != null) {
+      if (action == IFluidHandler.FluidAction.SIMULATE) {
+        this.recipe = recipe;
+        System.out.println(String.format("recipe=%s:%d", recipe.getFluid().getRegistryName(), recipe.getFluidAmount()));
+      }
+      return recipe.getFluidAmount();
+    }
     return 0;
   }
 
-  @Override
-  public boolean isEmpty() {
-    return false;
-  }
-
-  @Override
-  public ItemStack getStackInSlot(int index) {
-    return null;
-  }
-
-  @Override
-  public ItemStack decrStackSize(int index, int count) {
-    return null;
-  }
-
-  @Override
-  public ItemStack removeStackFromSlot(int index) {
-    return null;
-  }
-
-  @Override
-  public void setInventorySlotContents(int index, ItemStack stack) {
-
-  }
-
-  @Override
-  public boolean isUsableByPlayer(PlayerEntity player) {
-    return false;
-  }
-
-  @Override
-  public void clear() {
-
+  public void reset() {
+    timer = 0;
+    recipe = null;
+    tank.setCapacity(0);
+    tank.setFluid(FluidStack.EMPTY);
+    tank.renderOffset = 0;
   }
 
   public void updateFluidTo(FluidStack fluid) {

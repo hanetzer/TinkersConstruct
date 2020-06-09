@@ -97,12 +97,15 @@ public class FaucetTileEntity extends TileEntity implements ITickableTileEntity 
     IFluidHandler toDrain = getFluidHandler(pos.offset(direction), direction.getOpposite());
     IFluidHandler toFill = getFluidHandler(pos.down(), Direction.UP);
     if (toDrain != null && toFill != null) {
+      System.out.println("toDrain != null && toFill != null");
       // can we drain?
       FluidStack drained = toDrain.drain(144, IFluidHandler.FluidAction.SIMULATE);
       if (drained != null) {
+        System.out.println("drained != null");
         // can we fill
         int filled = toFill.fill(drained, IFluidHandler.FluidAction.SIMULATE);
         if (filled > 0) {
+          System.out.println(String.format("filled=%d", filled));
           // drain the liquid and transfer it, buffer the amount for delay
           this.drained = toDrain.drain(filled, IFluidHandler.FluidAction.EXECUTE);
           this.isPouring = true;
@@ -128,12 +131,14 @@ public class FaucetTileEntity extends TileEntity implements ITickableTileEntity 
 
     IFluidHandler toFill = getFluidHandler(pos.down(), Direction.UP);
     if (toFill != null) {
+      System.out.println("toFill != null");
       FluidStack fillStack = drained.copy();
       fillStack.setAmount(Math.min(drained.getAmount(), 6));
 
       // can we fill?
       int filled = toFill.fill(fillStack, IFluidHandler.FluidAction.SIMULATE);
       if (filled > 0) {
+        System.out.println(String.format("filled=%d", filled));
         // transfer it
         this.drained.shrink(filled);
         fillStack.setAmount(filled);

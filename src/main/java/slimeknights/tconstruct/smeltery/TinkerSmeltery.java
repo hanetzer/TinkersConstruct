@@ -7,25 +7,34 @@ import net.minecraft.block.material.Material;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.IRecipeSerializer;
+import net.minecraft.item.crafting.IRecipeType;
 import net.minecraft.tileentity.TileEntityType;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.logging.log4j.Logger;
 import slimeknights.mantle.item.BlockTooltipItem;
+import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.common.TinkerModule;
 import slimeknights.tconstruct.library.TinkerRegistry;
 import slimeknights.tconstruct.library.Util;
+import slimeknights.tconstruct.library.registration.RecipeSerializerDeferredRegister;
 import slimeknights.tconstruct.library.registration.object.BlockItemObject;
 import slimeknights.tconstruct.library.registration.object.BuildingBlockObject;
 import slimeknights.tconstruct.library.registration.object.EnumObject;
 import slimeknights.tconstruct.library.registration.object.ItemObject;
+import slimeknights.tconstruct.library.registration.object.RecipeSerializerObject;
 import slimeknights.tconstruct.smeltery.block.CastingBasinBlock;
 import slimeknights.tconstruct.smeltery.block.CastingTableBlock;
 import slimeknights.tconstruct.smeltery.block.FaucetBlock;
 import slimeknights.tconstruct.smeltery.block.SearedGlassBlock;
 import slimeknights.tconstruct.smeltery.block.SearedTankBlock;
 import slimeknights.tconstruct.smeltery.item.TankItem;
+import slimeknights.tconstruct.smeltery.recipe.CastingRecipe;
+import slimeknights.tconstruct.smeltery.tileentity.CastingBasinTileEntity;
 import slimeknights.tconstruct.smeltery.tileentity.FaucetTileEntity;
 import slimeknights.tconstruct.smeltery.tileentity.SmelteryComponentTileEntity;
 import slimeknights.tconstruct.smeltery.tileentity.TankTileEntity;
@@ -38,6 +47,7 @@ import java.util.function.Function;
  */
 public final class TinkerSmeltery extends TinkerModule {
   public static final Logger log = Util.getLogger("tinker_smeltery");
+
   /* Bricks */
   /* Crafting related items */
 
@@ -94,6 +104,7 @@ public final class TinkerSmeltery extends TinkerModule {
   });
   public static final RegistryObject<TileEntityType<TankTileEntity>> tank = TILE_ENTITIES.register("tank", TankTileEntity::new, (set) -> {set.addAll(searedTank.values());});
   public static final RegistryObject<TileEntityType<FaucetTileEntity>> faucet = TILE_ENTITIES.register("faucet", FaucetTileEntity::new, searedFaucet);
+  public static final RegistryObject<TileEntityType<CastingBasinTileEntity>> basin = TILE_ENTITIES.register("basin", CastingBasinTileEntity::new, castingBasin);
 
   /*
    * Items
@@ -101,6 +112,11 @@ public final class TinkerSmeltery extends TinkerModule {
   public static final ItemObject<Item> searedBrick = ITEMS.register("seared_brick", SMELTERY_PROPS);
 
 
+  /*
+   * Recipe
+   */
+  public static final RecipeSerializerObject<CastingRecipe.Serializer> castingRecipeSerializer = RECIPE_SERIALIZERS.register("casting", () -> new CastingRecipe.Serializer(CastingRecipe::new));
+  public static final IRecipeType<CastingRecipe> castingRecipeType = IRecipeType.register(Util.resource("casting"));
   /*
    * Smeltery block lists
    */

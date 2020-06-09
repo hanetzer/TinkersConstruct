@@ -1,0 +1,16 @@
+{
+    "type": "tconstruct:casting",
+    "basin": false,
+    "consumes": true,
+    "ingredients": [
+        {
+            "tag": "forge:molten/gold",
+            "amount": 128
+        },
+        {
+            "item": "minecraft:carrot"
+        }
+    ],
+    "result": "minecraft:golden_carrot",
+    "coolingTime": 4
+}

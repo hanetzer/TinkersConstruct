@@ -8,9 +8,10 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Hand;
 import net.minecraft.util.IStringSerializable;
+import net.minecraft.util.SoundCategory;
+import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
@@ -21,7 +22,6 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 import slimeknights.tconstruct.smeltery.tileentity.TankTileEntity;
 
 import javax.annotation.Nullable;
-
 import java.util.Locale;
 
 public class SearedTankBlock extends SearedBlock {
@@ -58,7 +58,7 @@ public class SearedTankBlock extends SearedBlock {
         IFluidHandler handler = te.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, hit.getFace()).orElse(null);
         if (handler != null) {
           if (FluidUtil.interactWithFluidHandler(player, hand, handler)) {
-            player.sendStatusMessage(new TranslationTextComponent("test"), true);
+            world.playSound(null, pos, SoundEvents.ITEM_BUCKET_EMPTY_LAVA, SoundCategory.BLOCKS, 1, 1);
           }
         }
       }

@@ -6,16 +6,18 @@ import net.minecraft.util.Direction;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidAttributes;
+import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import slimeknights.tconstruct.library.fluid.FluidTankAnimated;
 import slimeknights.tconstruct.library.fluid.IFluidTankUpdater;
 import slimeknights.tconstruct.smeltery.TinkerSmeltery;
+import slimeknights.tconstruct.smeltery.network.FluidUpdatePacket;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class TankTileEntity extends SmelteryComponentTileEntity implements IFluidTankUpdater {
+public class TankTileEntity extends SmelteryComponentTileEntity implements IFluidTankUpdater, FluidUpdatePacket.IFluidPacketReceiver {
 
   public static final int CAPACITY = FluidAttributes.BUCKET_VOLUME * 4;
 
@@ -23,6 +25,7 @@ public class TankTileEntity extends SmelteryComponentTileEntity implements IFlui
 
   private final LazyOptional<IFluidHandler> holder = LazyOptional.of(() -> tank);
   private int lastStrength;
+
   public TankTileEntity() {
     this(TinkerSmeltery.tank.get());
     this.tank = new FluidTankAnimated(CAPACITY, this);
@@ -64,8 +67,20 @@ public class TankTileEntity extends SmelteryComponentTileEntity implements IFlui
   public void writeTank(CompoundNBT nbt) {
     tank.writeToNBT(nbt);
   }
+
   @Override
   public void onTankContentsChanged() {
+  }
 
+  public FluidTankAnimated getInternalTank() {
+    return tank;
+  }
+
+  @Override
+  public void updateFluidTo(FluidStack fluid) {
+    int oldAmount = tank.getFluidAmount();
+    tank.setFluid(fluid);
+
+    tank.renderOffset += tank.getFluidAmount() - oldAmount;
   }
 }

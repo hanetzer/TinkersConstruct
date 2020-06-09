@@ -13,6 +13,8 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.Direction;
+import net.minecraft.util.SoundCategory;
+import net.minecraft.util.SoundEvents;
 import net.minecraft.util.text.TextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.common.capabilities.Capability;
@@ -120,9 +122,15 @@ public class CastingTileEntity extends InventoryTileEntity implements ITickableT
       System.out.println(String.format("timer=%d", timer));
       if (!getWorld().isRemote) {
         if (timer >= recipe.getCoolingTime()) { // recipe.getTime()
+          if (recipe.consumesCast()) {
+            setInventorySlotContents(INPUT, ItemStack.EMPTY);
+          }
           setInventorySlotContents(OUTPUT, recipe.getRecipeOutput());
+          getWorld().playSound(null, pos, SoundEvents.BLOCK_LAVA_EXTINGUISH, SoundCategory.AMBIENT, 0.07f, 4f);
 
           reset();
+
+          getWorld().notifyNeighborsOfStateChange(this.pos, this.getBlockState().getBlock());
         }
       }
     }
@@ -137,6 +145,7 @@ public class CastingTileEntity extends InventoryTileEntity implements ITickableT
       System.out.println(candidate.toString());
       if (candidate.matches(fluid, this, world)) {
         recipe = candidate;
+        System.out.println("candidate.matches(fluid, this, world)=true");
         System.out.println(recipe.toString());
       }
     }
@@ -150,7 +159,7 @@ public class CastingTileEntity extends InventoryTileEntity implements ITickableT
     if (recipe != null) {
       if (action == IFluidHandler.FluidAction.SIMULATE) {
         this.recipe = recipe;
-        System.out.println(String.format("recipe=%s:%d", recipe.getFluid().getRegistryName(), recipe.getFluidAmount()));
+        System.out.println(String.format("recipe=%s:%d::%s", recipe.getFluid().getRegistryName(), recipe.getFluidAmount(), recipe.getRecipeOutput().getItem().getRegistryName()));
       }
       return recipe.getFluidAmount();
     }

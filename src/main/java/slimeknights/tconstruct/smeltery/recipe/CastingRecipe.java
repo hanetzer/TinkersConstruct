@@ -9,6 +9,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.item.crafting.IRecipeSerializer;
 import net.minecraft.item.crafting.IRecipeType;
+import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.JSONUtils;
 import net.minecraft.util.ResourceLocation;
@@ -26,27 +27,31 @@ import javax.annotation.Nullable;
 public class CastingRecipe implements IRecipe<IInventory> {
   protected final ResourceLocation id;
   protected final String group;
+  private final Ingredient cast;
   private final FluidStack fluid;
   private final ItemStack result;
   protected final int coolingTime;
+  private final boolean consumed;
 
 
-  public CastingRecipe(ResourceLocation idIn, String groupIn, @Nonnull FluidStack fluidIn, ItemStack result, int coolingTime) {
+  public CastingRecipe(ResourceLocation idIn, String groupIn, @Nullable Ingredient ingredient, @Nonnull FluidStack fluidIn, ItemStack result, int coolingTime, boolean consumed) {
     this.id = idIn;
     this.group = groupIn;
+    this.cast = ingredient;
     this.fluid = fluidIn;
     this.result = result;
     this.coolingTime = coolingTime;
+    this.consumed = consumed;
   }
 
   // required
   @Override
   public boolean matches(IInventory inv, World worldIn) {
-    return true;
+    return this.cast.test(inv.getStackInSlot(0));
   }
 
   public boolean matches(Fluid fluid, IInventory inv, World world) {
-    return this.fluid.getFluid() == fluid;
+    return this.fluid.getFluid() == fluid && this.matches(inv, world);
   }
   @Override
   public ItemStack getCraftingResult(IInventory inv) {
@@ -90,6 +95,9 @@ public class CastingRecipe implements IRecipe<IInventory> {
     return this.fluid.getFluid();
   }
 
+  public boolean consumesCast() {
+    return this.consumed;
+  }
   public static class Serializer extends ForgeRegistryEntry<IRecipeSerializer<?>> implements IRecipeSerializer<CastingRecipe> {
     private final Serializer.IFactory<CastingRecipe> factory;
     public Serializer(Serializer.IFactory<CastingRecipe> factoryIn) {
@@ -98,7 +106,17 @@ public class CastingRecipe implements IRecipe<IInventory> {
 
     @Override
     public CastingRecipe read(ResourceLocation recipeId, JsonObject json) {
+      Ingredient ingredient = null;
       String s = JSONUtils.getString(json, "group", "");
+      boolean consumed = false;
+      if (JSONUtils.getBoolean(json, "cast", false)) {
+        JsonElement jsonelement = (JSONUtils.isJsonArray(json, "ingredient") ? JSONUtils.getJsonArray(json, "ingredient") : JSONUtils.getJsonObject(json, "ingredient"));
+        ingredient = Ingredient.deserialize(jsonelement);
+        consumed = JSONUtils.getBoolean(json, "consumed", false);
+      }
+      else {
+        ingredient = Ingredient.EMPTY;
+      }
       if (!json.has("fluid"))
         throw new JsonSyntaxException("Missing fluid input definition!");
       JsonObject jsonFluid = JSONUtils.getJsonObject(json, "fluid");
@@ -107,7 +125,7 @@ public class CastingRecipe implements IRecipe<IInventory> {
       ResourceLocation res = new ResourceLocation(resultString);
       ItemStack item = new ItemStack(JSONUtils.getItem(json, "result"));
       int coolingtime = JSONUtils.getInt(json, "coolingtime", 200);
-      return this.factory.create(recipeId, s, fluid, item, coolingtime);
+      return this.factory.create(recipeId, s, ingredient, fluid, item, coolingtime, consumed);
     }
 
     @Nullable
@@ -115,22 +133,26 @@ public class CastingRecipe implements IRecipe<IInventory> {
     public CastingRecipe read(ResourceLocation recipeId, PacketBuffer buffer) {
       // TODO: Magic number go away
       String s = buffer.readString(32767);
+      Ingredient ingredient = Ingredient.read(buffer);
       FluidStack fluidStack = FluidStack.readFromPacket(buffer);
+      boolean consumed = buffer.readBoolean();
       ItemStack output = buffer.readItemStack();
       int coolingtime = buffer.readInt();
-      return this.factory.create(recipeId, s, fluidStack, output, coolingtime);
+      return this.factory.create(recipeId, s, ingredient, fluidStack, output, coolingtime, consumed);
     }
 
     @Override
     public void write(PacketBuffer buffer, CastingRecipe recipe) {
       buffer.writeString(recipe.group);
+      recipe.cast.write(buffer);
       recipe.fluid.writeToPacket(buffer);
       buffer.writeItemStack(recipe.result);
       buffer.writeInt(recipe.coolingTime);
+      buffer.writeBoolean(recipe.consumed);
     }
 
     public interface IFactory<T> {
-      T create(ResourceLocation idIn, String groupIn, @Nonnull FluidStack fluidIn, ItemStack result, int coolingTime);
+      T create(ResourceLocation idIn, String groupIn, @Nullable Ingredient cast, @Nonnull FluidStack fluidIn, ItemStack result, int coolingTime, boolean consumed);
     }
   }
 }

@@ -1,0 +1,14 @@
+{
+    "type": "tconstruct:casting",
+    "cast": true,
+    "consumed": true,
+    "fluid": {
+        "name": "tconstruct:blue_slime",
+        "amount": 720
+    },
+    "ingredient": {
+        "item": "tconstruct:blue_congealed_slime"
+    },
+    "result": "tconstruct:blue_slime",
+    "coolingtime": 200
+}

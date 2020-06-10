@@ -21,7 +21,7 @@ public class TankTileEntityRenderer extends TileEntityRenderer<TankTileEntity> {
     FluidTankAnimated tank = tile.getInternalTank();
     FluidStack liquid = tank.getFluid();
 
-    if (liquid.isEmpty()) {
+    if (!liquid.isEmpty()) {
       float height = (liquid.getAmount() - tank.getRenderOffset()) / tank.getCapacity();
 
       if (tank.getRenderOffset() > 1.2f || tank.getRenderOffset() < -1.2f) {
@@ -30,7 +30,7 @@ public class TankTileEntityRenderer extends TileEntityRenderer<TankTileEntity> {
         tank.setRenderOffset(0);
       }
 
-      IVertexBuilder builder = bufferIn.getBuffer(RenderUtil.FLUID_RENDER_TYPE);
+      IVertexBuilder builder = bufferIn.getBuffer(RenderUtil.getBlockRenderType());
 
       float d = RenderUtil.FLUID_OFFSET;
 

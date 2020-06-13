@@ -20,13 +20,14 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
+import slimeknights.tconstruct.library.smeltery.IFaucetDepth;
 import slimeknights.tconstruct.library.utils.Tags;
 import slimeknights.tconstruct.smeltery.tileentity.TankTileEntity;
 
 import javax.annotation.Nullable;
 import java.util.Locale;
 
-public class SearedTankBlock extends SearedBlock {
+public class SearedTankBlock extends SearedBlock implements IFaucetDepth {
 
   public SearedTankBlock(Properties properties) {
     super(properties);
@@ -101,6 +102,11 @@ public class SearedTankBlock extends SearedBlock {
       return 0;
     }
     return ((TankTileEntity) te).comparatorStrength();
+  }
+
+  @Override
+  public float getFlowDepth(World world, BlockPos pos, BlockState state) {
+    return 1;
   }
 
   public enum TankType implements IStringSerializable {
